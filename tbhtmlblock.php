@@ -247,10 +247,13 @@ class tbHtmlBlock extends Module
 			SELECT b.content, bh.hook_name
 			FROM '._DB_PREFIX_.$this->table_name_lang.' b
 			LEFT JOIN '._DB_PREFIX_.$this->table_name_hook.' bh ON (bh.id_block = b.id_block)
+			LEFT JOIN '._DB_PREFIX_.$this->table_name.' o ON (o.id_block = b.id_block)
 			WHERE id_lang = '.$this->context->language->id.'
+			AND o.active = 1
 			GROUP BY b.id_block
 			ORDER BY bh.hook_name, bh.position
 			');
+
 
 		if(!$result)
 			return false;
