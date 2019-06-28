@@ -1,0 +1,1 @@
+The thirty bees HTML block module allows you to add custom html anywhere on your site. Starting with the 1.1.x version of thirty bees you can now add html to just about every page with more than 20 new hooks introduced.

@@ -1,24 +1,23 @@
 <?php
 /**
- * Copyright (C) 2017-2019 thirty bees
+ * Copyright (C) 2019 thirty bees
  *
  * NOTICE OF LICENSE
  *
  * This source file is subject to the Academic Free License (AFL 3.0)
- * that is bundled with this package in the file LICENSE.md
+ * that is bundled with this package in the file LICENSE.md.
  * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/afl-3.0.php
+ * https://opensource.org/licenses/afl-3.0.php
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to license@thirtybees.com so we can send you a copy immediately.
  *
  * @author    thirty bees <modules@thirtybees.com>
- * @copyright 2017-2019 thirty bees
- * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * @copyright 2019 thirty bees
+ * @license   Academic Free License (AFL 3.0)
  */
 
-
-class AdminHTMLBlockController extends ModuleAdminController 
+class AdminHTMLBlockController extends ModuleAdminController
 {
 
     public function __construct()
@@ -52,7 +51,7 @@ class AdminHTMLBlockController extends ModuleAdminController
     	if($blocks)
     	{
     		foreach ($blocks as $block) {
-    			
+
     			$fieldsList = [
 		            'id_block' => [
 		                'title' => 'ID',
@@ -91,10 +90,10 @@ class AdminHTMLBlockController extends ModuleAdminController
 
 		        $content .= $helper->generateList($block['blocks'], $fieldsList);
     		}
-    		
+
     	}
     	return $content;
-        
+
     }
 
 
@@ -139,7 +138,7 @@ class AdminHTMLBlockController extends ModuleAdminController
             ]
         ];
 
-		
+
 		if($this->display == 'edit')
 		{
 			$inputs[] = array(
@@ -154,7 +153,7 @@ class AdminHTMLBlockController extends ModuleAdminController
 			$action = 'submitAddBlock';
 		}
 
-		
+
 		$this->fields_form = array(
 			'legend' => array(
 				'title' => $title,
@@ -170,14 +169,14 @@ class AdminHTMLBlockController extends ModuleAdminController
 
 		return parent::renderForm();
 
-	}	
+	}
 
 	public function renderView()
 	{
 		$this->tpl_view_vars['object'] = $this->loadObject();
 		return parent::renderView();
 	}
-	
+
 	public function postProcess()
 	{
 		if ($this->ajax) {
@@ -188,7 +187,7 @@ class AdminHTMLBlockController extends ModuleAdminController
 		}
 		else {
 
-			if (Tools::isSubmit('submitAddBlock')) 
+			if (Tools::isSubmit('submitAddBlock'))
 			{
 				$this->processAdd();
 
@@ -208,7 +207,7 @@ class AdminHTMLBlockController extends ModuleAdminController
 
 		}
 
-		
+
 
 	}
 	public function toggleStatus()
@@ -254,7 +253,7 @@ class AdminHTMLBlockController extends ModuleAdminController
 					foreach ($this->getLanguages() as $lang) {
 						$content = Tools::getValue('content_'.$lang['id_lang']);
 						if(!Db::getInstance()->insert($this->module->table_name_lang, ['id_block' => $block_id, 'id_lang' => $lang['id_lang'], 'content' => pSQL($content, TRUE)]))
-							$this->_errors[] = $this->l('Error while adding the block\'s content for language "'.$lang['id_lang'].'"');								
+							$this->_errors[] = $this->l('Error while adding the block\'s content for language "'.$lang['id_lang'].'"');
 					}
 
 				}
@@ -289,15 +288,15 @@ class AdminHTMLBlockController extends ModuleAdminController
 							Db::getInstance()->insert($this->module->table_name_lang, array('id_lang' => $lang['id_lang'], 'id_block' => (int)Tools::getValue('id_block'), 'content' => ''));
 
 						if(!Db::getInstance()->update($this->module->table_name_lang, array('content' => pSQL($content, TRUE)), 'id_block = '.(int)Tools::getValue('id_block').' AND id_lang = ' . $lang['id_lang']))
-							$this->_errors[] = $this->l('Error while updating the block\'s content for language "'.$lang['id_lang'].'"');		
-					}						
+							$this->_errors[] = $this->l('Error while updating the block\'s content for language "'.$lang['id_lang'].'"');
+					}
 				}
 			}
 
 		}
 		if (empty($this->errors)) {
             $this->redirect_after = static::$currentIndex.'&conf=4&token='.$this->token;
-        }		
+        }
 	}
 
 	public function processDelete()

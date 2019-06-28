@@ -1,0 +1,20 @@
+module_name: HTML Block
+compatible_versions: 1.0.0+
+author: thirty bees
+category: front office
+tags:
+  - html
+  - html block
+  - tbhtmlblock
+description_short: The HTML block module allows you to add custom HTML anywhere on your thirty bees site.
+description: description.md
+images:
+  - image-1.png
+gdpr_compliant: true
+license: MIT
+php_version:
+  - 5.6
+  - 7.0
+  - 7.1
+  - 7.2
+  - 7.3

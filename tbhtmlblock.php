@@ -1,21 +1,22 @@
 <?php
 /**
- * Copyright (C) 2017-2019 thirty bees
+ * Copyright (C) 2019 thirty bees
  *
  * NOTICE OF LICENSE
  *
  * This source file is subject to the Academic Free License (AFL 3.0)
- * that is bundled with this package in the file LICENSE.md
+ * that is bundled with this package in the file LICENSE.md.
  * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/afl-3.0.php
+ * https://opensource.org/licenses/afl-3.0.php
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to license@thirtybees.com so we can send you a copy immediately.
  *
  * @author    thirty bees <modules@thirtybees.com>
- * @copyright 2017-2019 thirty bees
- * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * @copyright 2019 thirty bees
+ * @license   Academic Free License (AFL 3.0)
  */
+
 
 if (!defined('_TB_VERSION_'))
 	exit;
@@ -49,7 +50,7 @@ class tbHtmlBlock extends Module
 		$this->table_name_hook = 'tbhtmlblock_hook';
 		$this->bootstrap = true;
 
-		// List of hooks 
+		// List of hooks
 		$this->hooks_list = array(
 			'displayHeader',
 			'displayLeftColumn',
@@ -102,7 +103,7 @@ class tbHtmlBlock extends Module
 		$this->displayName = $this->l('Custom HTML Block');
 		$this->description = $this->l('Add custom html or code anywhere in your theme');
 	}
-	
+
 	public function install()
 	{
 		if (!parent::install() OR
@@ -115,7 +116,7 @@ class tbHtmlBlock extends Module
 		}
 		return true;
 	}
-	
+
 	public function uninstall()
 	{
 		if (!parent::uninstall() OR !$this->_eraseTable() OR !$this->_eraseTabs())
@@ -161,7 +162,7 @@ class tbHtmlBlock extends Module
 	    /* This is the main tab, all others will be children of this */
 		$all_langs = Language::getLanguages();
 	    $id_tab = $this->_createSingleTab(0, 'Admin'.ucfirst($this->name), $this->displayName, $all_langs);
-	    
+
 	    foreach ($this->_tabs as $class => $name) {
 	    	  $this->_createSingleTab($id_tab, $class, $name, $all_langs);
 	    }
@@ -212,13 +213,13 @@ class tbHtmlBlock extends Module
 		}
 
 		return true;
-	}	
+	}
 
 
 
 	public function getAllBlocks()
 	{
-		
+
 		$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
 			SELECT b.*, bh.*, h.title as hook_title
 			FROM '._DB_PREFIX_.$this->table_name.' b
@@ -237,12 +238,12 @@ class tbHtmlBlock extends Module
 			$final_blocks[$block['hook_name']]['blocks'][] = $block;
 		}
 		return $final_blocks;
-		    
+
 	}
 
 	public function getFrontBlocks()
 	{
-		
+
 		$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
 			SELECT b.content, bh.hook_name
 			FROM '._DB_PREFIX_.$this->table_name_lang.' b
@@ -262,7 +263,7 @@ class tbHtmlBlock extends Module
 		foreach ($result as $block) {
 			$final_blocks[$block['hook_name']][] = $block['content'];
 		}
-		return $final_blocks;		
+		return $final_blocks;
 	}
 
 	public function getHooksWithNames()
@@ -274,10 +275,10 @@ class tbHtmlBlock extends Module
 			WHERE name IN ("'.implode('","', $this->hooks_list).'")
 			ORDER BY title
 			');
-		    
+
 	}
 
-	
+
 	public function getSingleBlockData($id_block)
 	{
 		$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
@@ -297,10 +298,10 @@ class tbHtmlBlock extends Module
 		$new_block['content'] = array();
 		foreach ($result as $key => $block)
 		{
-			$new_block['content'][$block['id_lang']] = $block['content'];			
-		}		
+			$new_block['content'][$block['id_lang']] = $block['content'];
+		}
 		return $new_block;
-		    
+
 	}
 
 	public function getBlockStatus($id_block)
@@ -313,7 +314,7 @@ class tbHtmlBlock extends Module
 
 		//check if all hooks are cached, if not get them
 		//add getFrontHooks
-		
+
 		if(!self::$_cachedHooksList)
 		{
 			self::$_cachedHooksList = $this->getFrontBlocks();
@@ -322,12 +323,12 @@ class tbHtmlBlock extends Module
 
 		if(!isset($hooks[$hookname]))
 			return false;
-		
+
 		$this->smarty->assign('tbhtmlblock_blocks', $hooks[$hookname]);
 
 		return $this->display(__FILE__, 'tbhtmlblock.tpl');
 	}
-	
+
 	public function hookDisplayHeader($params)
 	{
 		return $this->hookCommon('displayHeader', $params);
