@@ -17,7 +17,6 @@
  * @license   Academic Free License (AFL 3.0)
  */
 
-
 if (!defined('_TB_VERSION_'))
 	exit;
 /**
@@ -44,7 +43,9 @@ class tbHtmlBlock extends Module
 		$this->tab = 'front_office_features';
 		$this->version = '1.1.2';
 		$this->author = 'thirty bees';
-		$this->need_instance = 0;
+        $this->tb_min_version = '1.0.0';
+        $this->tb_versions_compliancy = '> 1.0.0';
+        $this->need_instance = 0;
 		$this->table_name = 'tbhtmlblock';
 		$this->table_name_lang = 'tbhtmlblock_lang';
 		$this->table_name_hook = 'tbhtmlblock_hook';
@@ -94,13 +95,10 @@ class tbHtmlBlock extends Module
 			'displayHomeTabContent',
 			);
 
-		if (version_compare(@_PS_VERSION_,'1.6','>'))
-		{
-			$this->hooks_list[] = 'displayMaintenance';
-		}
+
 	 	parent::__construct();
 
-		$this->displayName = $this->l('Custom HTML Block');
+		$this->displayName = $this->l('HTML Block');
 		$this->description = $this->l('Add custom html or code anywhere in your theme');
 	}
 
