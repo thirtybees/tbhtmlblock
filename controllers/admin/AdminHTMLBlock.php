@@ -17,6 +17,7 @@
  * @license   Academic Free License (AFL 3.0)
  */
 
+
 class AdminHTMLBlockController extends ModuleAdminController
 {
 

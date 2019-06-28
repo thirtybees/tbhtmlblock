@@ -16,6 +16,7 @@
  * @license   Academic Free License (AFL 3.0)
  */
 
+
 $(document).ready(function() {
 	$('table.tableDnD').tableDnD({
 
