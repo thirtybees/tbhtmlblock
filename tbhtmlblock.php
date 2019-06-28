@@ -17,7 +17,6 @@
  * @license   Academic Free License (AFL 3.0)
  */
 
-
 if (!defined('_TB_VERSION_'))
 	exit;
 /**

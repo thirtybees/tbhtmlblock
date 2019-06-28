@@ -16,7 +16,6 @@
  * @license   Academic Free License (AFL 3.0)
  */
 
-
 $(document).ready(function() {
 	$('table.tableDnD').tableDnD({
 
@@ -29,7 +28,7 @@ $(document).ready(function() {
 				reOrder = ':odd';
 
 			$('#'+table.id+ '#' + row.id).parent('tr').addClass('myDragClass');
-		},
+			},
 		dragHandle: 'dragHandle',
 		onDragClass: 'myDragClass',
 		onDrop: function(table, row) {
