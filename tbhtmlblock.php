@@ -17,25 +17,24 @@
  * @license   Academic Free License (AFL 3.0)
  */
 
-if (!defined('_TB_VERSION_'))
+if ( ! defined('_TB_VERSION_')) {
     exit;
-/**
-*
-* Added back office hooks
-*
-**/
+}
 
-class tbHtmlBlock extends Module
+/**
+ * Added back office hooks
+ **/
+
+class TbHtmlBlock extends Module
 {
     /* @var boolean error */
-    protected $_errors = false;
-    protected $hooks_list = array();
+    protected $hooksList = [];
 
-    protected static $_cachedHooksList;
+    protected static $cachedHooksList;
 
-    protected $_tabs = array(
-        'AdminHTMLBlock' => 'Custom Blocks',// class => label
-        );
+    protected $_tabs = [
+        'AdminHTMLBlock' => 'Custom Blocks', // class => label
+    ];
 
     public function __construct()
     {
@@ -52,7 +51,7 @@ class tbHtmlBlock extends Module
         $this->bootstrap = true;
 
         // List of hooks
-        $this->hooks_list = array(
+        $this->hooksList = [
             'displayHeader',
             'displayLeftColumn',
             'displayRightColumn',
@@ -93,8 +92,7 @@ class tbHtmlBlock extends Module
             'displayMyAccountBlockFooter',
             'displayHomeTab',
             'displayHomeTabContent',
-            );
-
+        ];
 
         parent::__construct();
 
@@ -104,25 +102,33 @@ class tbHtmlBlock extends Module
 
     public function install()
     {
-        if (!parent::install() OR
-            !$this->_createTabs() OR
-            !$this->_installTable())
+        if ( ! parent::install()
+            || ! $this->_createTabs()
+            || ! $this->_installTable()
+        ) {
             return false;
-        foreach ($this->hooks_list as $hook) {
-            if(!$this->registerHook($hook))
-                return false;
         }
+
+        foreach ($this->hooksList as $hook) {
+            if ( ! $this->registerHook($hook)) {
+                return false;
+            }
+        }
+
         return true;
     }
 
     public function uninstall()
     {
-        if (!parent::uninstall() OR !$this->_eraseTable() OR !$this->_eraseTabs())
+        if ( ! parent::uninstall()
+            || ! $this->_eraseTable()
+            || ! $this->_eraseTabs()
+        ) {
             return false;
+        }
+
         return true;
     }
-
-
 
     private function _installTable(){
         $sql = 'CREATE TABLE  `'._DB_PREFIX_.$this->table_name.'` (
@@ -143,50 +149,62 @@ class tbHtmlBlock extends Module
                 `position` INT( 12 ) NOT NULL,
                 PRIMARY KEY (  `id_block`,  `hook_name`)
                 ) ENGINE =' ._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
-        if (!Db::getInstance()->Execute($sql) || !Db::getInstance()->Execute($sql2) || !Db::getInstance()->Execute($sql3))
+
+        if ( ! Db::getInstance()->Execute($sql)
+            || ! Db::getInstance()->Execute($sql2)
+            || ! Db::getInstance()->Execute($sql3)
+        ) {
             return false;
-        else return true;
+        }
+
+        return true;
     }
 
     private function _eraseTable(){
-        if(!Db::getInstance()->Execute('DROP TABLE `'._DB_PREFIX_.$this->table_name.'`') || !Db::getInstance()->Execute('DROP TABLE `'._DB_PREFIX_.$this->table_name_lang.'`') || !Db::getInstance()->Execute('DROP TABLE `'._DB_PREFIX_.$this->table_name_hook.'`'))
+        if ( ! Db::getInstance()->Execute(
+                'DROP TABLE `'._DB_PREFIX_.$this->table_name.'`'
+            ) || ! Db::getInstance()->Execute(
+                'DROP TABLE `'._DB_PREFIX_.$this->table_name_lang.'`'
+            ) || ! Db::getInstance()->Execute(
+                'DROP TABLE `'._DB_PREFIX_.$this->table_name_hook.'`'
+        )) {
             return false;
-        else return true;
-    }
+        }
 
+        return true;
+    }
 
     private function _createTabs()
     {
         /* This is the main tab, all others will be children of this */
-        $all_langs = Language::getLanguages();
-        $id_tab = $this->_createSingleTab(0, 'Admin'.ucfirst($this->name), $this->displayName, $all_langs);
+        $allLangs = Language::getLanguages();
+        $idTab = $this->_createSingleTab(0, 'Admin'.ucfirst($this->name), $this->displayName, $allLangs);
 
         foreach ($this->_tabs as $class => $name) {
-              $this->_createSingleTab($id_tab, $class, $name, $all_langs);
+              $this->_createSingleTab($idTab, $class, $name, $allLangs);
         }
 
         return true;
-
     }
 
-
-    private function _createSingleTab($id_parent, $class, $name, $all_langs)
+    private function _createSingleTab($idParent, $class, $name, $allLangs)
     {
-
         $tab = new Tab();
         $tab->active = 1;
 
-        foreach ($all_langs as $language)
+        foreach ($allLangs as $language) {
             $tab->name[$language['id_lang']] = $name;
+        }
 
         $tab->class_name = $class;
         $tab->module = $this->name;
-        $tab->id_parent = $id_parent;
+        $tab->id_parent = $idParent;
 
-        if($tab->add())
+        if ($tab->add()) {
             return $tab->id;
-        else return false;
+        }
 
+        return false;
     }
 
     /**
@@ -194,18 +212,16 @@ class tbHtmlBlock extends Module
      */
     private function _eraseTabs()
     {
-        $id_tabm = (int)Tab::getIdFromClassName('Admin'.ucfirst($this->name));
-        if($id_tabm)
-        {
-            $tabm = new Tab($id_tabm);
+        $idTabm = (int)Tab::getIdFromClassName('Admin'.ucfirst($this->name));
+        if ($idTabm) {
+            $tabm = new Tab($idTabm);
             $tabm->delete();
         }
 
         foreach ($this->_tabs as $class => $name) {
-            $id_tab = (int)Tab::getIdFromClassName($class);
-            if($id_tab)
-            {
-                $tab = new Tab($id_tab);
+            $idTab = (int)Tab::getIdFromClassName($class);
+            if ($idTab) {
+                $tab = new Tab($idTab);
                 $tab->delete();
             }
         }
@@ -213,11 +229,8 @@ class tbHtmlBlock extends Module
         return true;
     }
 
-
-
     public function getAllBlocks()
     {
-
         $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
             SELECT b.*, bh.*, h.title as hook_title
             FROM '._DB_PREFIX_.$this->table_name.' b
@@ -225,23 +238,23 @@ class tbHtmlBlock extends Module
             LEFT JOIN '._DB_PREFIX_.'hook h ON (h.name = bh.hook_name)
             GROUP BY b.id_block
             ORDER BY bh.hook_name, bh.position
-            ');
+        ');
 
-        if(!$result)
+        if ( ! $result) {
             return false;
-
-        $final_blocks = array();
-        foreach ($result as $block) {
-            $final_blocks[$block['hook_name']]['name'] = $block['hook_title'];
-            $final_blocks[$block['hook_name']]['blocks'][] = $block;
         }
-        return $final_blocks;
 
+        $finalBlocks = [];
+        foreach ($result as $block) {
+            $finalBlocks[$block['hook_name']]['name'] = $block['hook_title'];
+            $finalBlocks[$block['hook_name']]['blocks'][] = $block;
+        }
+
+        return $finalBlocks;
     }
 
     public function getFrontBlocks()
     {
-
         $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
             SELECT b.content, bh.hook_name
             FROM '._DB_PREFIX_.$this->table_name_lang.' b
@@ -251,31 +264,29 @@ class tbHtmlBlock extends Module
             AND o.active = 1
             GROUP BY b.id_block
             ORDER BY bh.hook_name, bh.position
-            ');
+        ');
 
-
-        if(!$result)
+        if ( ! $result) {
             return false;
-
-        $final_blocks = array();
-        foreach ($result as $block) {
-            $final_blocks[$block['hook_name']][] = $block['content'];
         }
-        return $final_blocks;
+
+        $finalBlocks = [];
+        foreach ($result as $block) {
+            $finalBlocks[$block['hook_name']][] = $block['content'];
+        }
+
+        return $finalBlocks;
     }
 
     public function getHooksWithNames()
     {
-
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
             SELECT *
             FROM '._DB_PREFIX_.'hook
-            WHERE name IN ("'.implode('","', $this->hooks_list).'")
+            WHERE name IN ("'.implode('","', $this->hooksList).'")
             ORDER BY title
-            ');
-
+        ');
     }
-
 
     public function getSingleBlockData($id_block)
     {
@@ -285,21 +296,20 @@ class tbHtmlBlock extends Module
             LEFT JOIN '._DB_PREFIX_.$this->table_name_lang.' tl ON (t.id_block = tl.id_block)
             LEFT JOIN '._DB_PREFIX_.$this->table_name_hook.' th ON (t.id_block = th.id_block)
             WHERE t.id_block ='.$id_block.'
-            ');
+        ');
 
-
-        if(!$result)
+        if ( ! $result) {
             return false;
-
-        $new_block = $result[0];
-
-        $new_block['content'] = array();
-        foreach ($result as $key => $block)
-        {
-            $new_block['content'][$block['id_lang']] = $block['content'];
         }
-        return $new_block;
 
+        $newBlock = $result[0];
+
+        $newBlock['content'] = [];
+        foreach ($result as $key => $block) {
+            $newBlock['content'][$block['id_lang']] = $block['content'];
+        }
+
+        return $newBlock;
     }
 
     public function getBlockStatus($id_block)
@@ -309,18 +319,17 @@ class tbHtmlBlock extends Module
 
     public function hookCommon($hookname, $params)
     {
-
         //check if all hooks are cached, if not get them
         //add getFrontHooks
 
-        if(!self::$_cachedHooksList)
-        {
-            self::$_cachedHooksList = $this->getFrontBlocks();
+        if ( ! self::$cachedHooksList) {
+            self::$cachedHooksList = $this->getFrontBlocks();
         }
-        $hooks = self::$_cachedHooksList;
+        $hooks = self::$cachedHooksList;
 
-        if(!isset($hooks[$hookname]))
+        if ( ! isset($hooks[$hookname])) {
             return false;
+        }
 
         $this->smarty->assign('tbhtmlblock_blocks', $hooks[$hookname]);
 
@@ -334,159 +343,195 @@ class tbHtmlBlock extends Module
 
     public function hookDisplayLeftColumn($params)
     {
-        return $this->hookCommon('displayLeftColumn',$params);
+        return $this->hookCommon('displayLeftColumn', $params);
     }
+
     public function hookDisplayRightColumn($params)
     {
-        return $this->hookCommon('displayRightColumn',$params);
+        return $this->hookCommon('displayRightColumn', $params);
     }
+
     public function hookDisplayHome($params)
     {
-        return $this->hookCommon('displayHome',$params);
+        return $this->hookCommon('displayHome', $params);
     }
+
     public function hookDisplayTop($params)
     {
-        return $this->hookCommon('displayTop',$params);
+        return $this->hookCommon('displayTop', $params);
     }
+
     public function hookDisplayFooter($params)
     {
-        return $this->hookCommon('displayFooter',$params);
+        return $this->hookCommon('displayFooter', $params);
     }
+
     public function hookDisplayFooterProduct($params)
     {
-        return $this->hookCommon('displayFooterProduct',$params);
+        return $this->hookCommon('displayFooterProduct', $params);
     }
+
     public function hookDisplayMyAccountBlock($params)
     {
-        return $this->hookCommon('displayMyAccountBlock',$params);
+        return $this->hookCommon('displayMyAccountBlock', $params);
     }
+
     public function hookDisplayBackOfficeFooter($params)
     {
-        return $this->hookCommon('displayBackOfficeFooter',$params);
+        return $this->hookCommon('displayBackOfficeFooter', $params);
     }
+
     public function hookDisplayBackOfficeHeader($params)
     {
-        return $this->hookCommon('displayBackOfficeHeader',$params);
+        return $this->hookCommon('displayBackOfficeHeader', $params);
     }
+
     public function hookDisplayBackOfficeHome($params)
     {
-        return $this->hookCommon('displayBackOfficeHome',$params);
+        return $this->hookCommon('displayBackOfficeHome', $params);
     }
+
     public function hookDisplayBackOfficeTop($params)
     {
-        return $this->hookCommon('displayBackOfficeTop',$params);
+        return $this->hookCommon('displayBackOfficeTop', $params);
     }
+
     public function hookDisplayBackOfficeCategory($params)
     {
-        return $this->hookCommon('displayBackOfficeCategory',$params);
+        return $this->hookCommon('displayBackOfficeCategory', $params);
     }
+
     public function hookDisplayAdminOrder($params)
     {
-        return $this->hookCommon('displayAdminOrder',$params);
+        return $this->hookCommon('displayAdminOrder', $params);
     }
+
     public function hookDisplayAdminCustomers($params)
     {
-        return $this->hookCommon('displayAdminCustomers',$params);
+        return $this->hookCommon('displayAdminCustomers', $params);
     }
+
     public function hookDisplayBeforeCarrier($params)
     {
-        return $this->hookCommon('displayBeforeCarrier',$params);
+        return $this->hookCommon('displayBeforeCarrier', $params);
     }
+
     public function hookDisplayBeforePayment($params)
     {
-        return $this->hookCommon('displayBeforePayment',$params);
+        return $this->hookCommon('displayBeforePayment', $params);
     }
+
     public function hookDisplayCustomerAccount($params)
     {
-        return $this->hookCommon('displayCustomerAccount',$params);
+        return $this->hookCommon('displayCustomerAccount', $params);
     }
+
     public function hookDisplayCustomerAccountForm($params)
     {
-        return $this->hookCommon('displayCustomerAccountForm',$params);
+        return $this->hookCommon('displayCustomerAccountForm', $params);
     }
+
     public function hookDisplayCustomerAccountFormTop($params)
     {
-        return $this->hookCommon('displayCustomerAccountFormTop',$params);
+        return $this->hookCommon('displayCustomerAccountFormTop', $params);
     }
+
     public function hookDisplayLeftColumnProduct($params)
     {
-        return $this->hookCommon('displayLeftColumnProduct',$params);
+        return $this->hookCommon('displayLeftColumnProduct', $params);
     }
+
     public function hookDisplayMaintenance($params)
     {
-        return $this->hookCommon('displayMaintenance',$params);
+        return $this->hookCommon('displayMaintenance', $params);
     }
+
     public function hookDisplayRightColumnProduct($params)
     {
-        return $this->hookCommon('displayRightColumnProduct',$params);
+        return $this->hookCommon('displayRightColumnProduct', $params);
     }
+
     public function hookDisplayProductTab($params)
     {
-        return $this->hookCommon('displayProductTab',$params);
+        return $this->hookCommon('displayProductTab', $params);
     }
+
     public function hookDisplayProductTabContent($params)
     {
-        return $this->hookCommon('displayProductTabContent',$params);
+        return $this->hookCommon('displayProductTabContent', $params);
     }
+
     public function hookDisplayPayment($params)
     {
-        return $this->hookCommon('displayPayment',$params);
+        return $this->hookCommon('displayPayment', $params);
     }
+
     public function hookDisplayPaymentReturn($params)
     {
-        return $this->hookCommon('displayPaymentReturn',$params);
+        return $this->hookCommon('displayPaymentReturn', $params);
     }
+
     public function hookDisplayPaymentTop($params)
     {
-        return $this->hookCommon('displayPaymentTop',$params);
+        return $this->hookCommon('displayPaymentTop', $params);
     }
+
     public function hookDisplayProductButtons($params)
     {
-        return $this->hookCommon('displayProductButtons',$params);
+        return $this->hookCommon('displayProductButtons', $params);
     }
     public function hookDisplayProductComparison($params)
     {
-        return $this->hookCommon('displayProductComparison',$params);
+        return $this->hookCommon('displayProductComparison', $params);
     }
+
     public function hookDisplayShoppingCart($params)
     {
-        return $this->hookCommon('displayShoppingCart',$params);
+        return $this->hookCommon('displayShoppingCart', $params);
     }
+
     public function hookDisplayShoppingCartFooter($params)
     {
-        return $this->hookCommon('displayShoppingCartFooter',$params);
+        return $this->hookCommon('displayShoppingCartFooter', $params);
     }
+
     public function hookDisplayTopColumn($params)
     {
-        return $this->hookCommon('displayTopColumn',$params);
+        return $this->hookCommon('displayTopColumn', $params);
     }
+
     public function hookDisplayProductListFunctionalButtons($params)
     {
-        return $this->hookCommon('displayProductListFunctionalButtons',$params);
+        return $this->hookCommon('displayProductListFunctionalButtons', $params);
     }
+
     public function hookDisplayPDFInvoice($params)
     {
-        return $this->hookCommon('displayPDFInvoice',$params);
+        return $this->hookCommon('displayPDFInvoice', $params);
     }
+
     public function hookDisplayInvoice($params)
     {
-        return $this->hookCommon('displayInvoice',$params);
+        return $this->hookCommon('displayInvoice', $params);
     }
+
     public function hookDisplayNav($params)
     {
         return $this->hookCommon('displayNav',$params);
     }
+
     public function hookDisplayMyAccountBlockFooter($params)
     {
-        return $this->hookCommon('displayMyAccountBlockFooter',$params);
-    }
-    public function hookDisplayHomeTab($params)
-    {
-        return $this->hookCommon('displayHomeTab',$params);
-    }
-    public function hookDisplayHomeTabContent($params)
-    {
-        return $this->hookCommon('displayHomeTabContent',$params);
+        return $this->hookCommon('displayMyAccountBlockFooter', $params);
     }
 
+    public function hookDisplayHomeTab($params)
+    {
+        return $this->hookCommon('displayHomeTab', $params);
+    }
+
+    public function hookDisplayHomeTabContent($params)
+    {
+        return $this->hookCommon('displayHomeTabContent', $params);
+    }
 }
