@@ -77,7 +77,6 @@ class TbHtmlBlock extends Module
             'displayRightColumnProduct',
             'displayProductTab',
             'displayProductTabContent',
-            'displayPayment',
             'displayPaymentReturn',
             'displayPaymentTop',
             'displayProductButtons',
