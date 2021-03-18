@@ -533,4 +533,16 @@ class TbHtmlBlock extends Module
     {
         return $this->hookCommon('displayHomeTabContent', $params);
     }
+
+    /**
+     * Get module configuration page.
+     *
+     * Redirects to AdminHTMLBlock controller
+     *
+     * @throws PrestaShopException
+     */
+    public function getContent()
+    {
+        Tools::redirectAdmin(Context::getContext()->link->getAdminLink('AdminHTMLBlock'));
+    }
 }
