@@ -105,7 +105,7 @@ class TbHtmlBlock extends Module
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
-    public function install()
+    public function install($installFixtures = true)
     {
         if ( ! parent::install()
             || ! $this->createTab()
@@ -120,20 +120,23 @@ class TbHtmlBlock extends Module
             }
         }
 
-        $this->installFixtures();
+        if ($installFixtures) {
+            $this->installFixtures();
+        }
 
         return true;
     }
 
     /**
+     * @param boolean $full
      * @return bool
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
-    public function uninstall()
+    public function uninstall($full = true)
     {
         if ( ! parent::uninstall()
-            || ! $this->eraseTable()
+            || ! $this->eraseTable($full)
             || ! $this->eraseTabs()
         ) {
             return false;
@@ -144,22 +147,36 @@ class TbHtmlBlock extends Module
 
     /**
      * @return bool
+     * @throws Adapter_Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
+    public function reset()
+    {
+        return (
+            $this->uninstall(false) &&
+            $this->install(false)
+        );
+    }
+
+    /**
+     * @return bool
      * @throws PrestaShopException
      */
     private function installTable(){
-        $sql = 'CREATE TABLE  `'._DB_PREFIX_ . static::TABLE_NAME . '` (
+        $sql = 'CREATE TABLE  IF NOT EXISTS `'._DB_PREFIX_ . static::TABLE_NAME . '` (
                 `id_block` INT( 12 ) AUTO_INCREMENT,
                 `name` VARCHAR( 64 ) NOT NULL,
                 `active` TINYINT(1) NOT NULL,
                 PRIMARY KEY (  `id_block` )
                 ) ENGINE =' ._MYSQL_ENGINE_;
-        $sql2 = 'CREATE TABLE  `'._DB_PREFIX_.static::TABLE_NAME_LANG.'` (
+        $sql2 = 'CREATE TABLE  IF NOT EXISTS `'._DB_PREFIX_.static::TABLE_NAME_LANG.'` (
                 `id_block` INT( 12 ),
                 `id_lang` INT( 12 ) NOT NULL,
                 `content` TEXT NOT NULL,
                 PRIMARY KEY (  `id_block`, `id_lang` )
                 ) ENGINE =' ._MYSQL_ENGINE_;
-        $sql3 = 'CREATE TABLE  `'._DB_PREFIX_.static::TABLE_NAME_HOOK.'` (
+        $sql3 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.static::TABLE_NAME_HOOK.'` (
                 `id_block` INT( 12 ),
                 `hook_name` VARCHAR( 64 ) NOT NULL,
                 `position` INT( 12 ) NOT NULL,
@@ -180,17 +197,15 @@ class TbHtmlBlock extends Module
      * @return bool
      * @throws PrestaShopException
      */
-    private function eraseTable(){
-        if ( ! Db::getInstance()->Execute(
-                'DROP TABLE `'._DB_PREFIX_.static::TABLE_NAME.'`'
-            ) || ! Db::getInstance()->Execute(
-                'DROP TABLE `'._DB_PREFIX_.static::TABLE_NAME_LANG.'`'
-            ) || ! Db::getInstance()->Execute(
-                'DROP TABLE `'._DB_PREFIX_.static::TABLE_NAME_HOOK.'`'
-        )) {
-            return false;
+    private function eraseTable($deleteTables){
+        if ($deleteTables) {
+            $conn = Db::getInstance();
+            return (
+                $conn->execute('DROP TABLE `' . _DB_PREFIX_ . static::TABLE_NAME . '`') &&
+                $conn->execute('DROP TABLE `' . _DB_PREFIX_ . static::TABLE_NAME_LANG . '`') &&
+                $conn->execute('DROP TABLE `' . _DB_PREFIX_ . static::TABLE_NAME_HOOK . '`')
+            );
         }
-
         return true;
     }
 
