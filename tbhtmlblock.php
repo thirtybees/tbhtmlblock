@@ -165,23 +165,23 @@ class TbHtmlBlock extends Module
      */
     private function installTable(){
         $sql = 'CREATE TABLE  IF NOT EXISTS `'._DB_PREFIX_ . static::TABLE_NAME . '` (
-                `id_block` INT( 12 ) AUTO_INCREMENT,
-                `name` VARCHAR( 64 ) NOT NULL,
+                `id_block` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                `name` VARCHAR(64) NOT NULL,
                 `active` TINYINT(1) NOT NULL,
-                PRIMARY KEY (  `id_block` )
-                ) ENGINE =' ._MYSQL_ENGINE_;
+                PRIMARY KEY (`id_block`)
+                ) ENGINE =' ._MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci';
         $sql2 = 'CREATE TABLE  IF NOT EXISTS `'._DB_PREFIX_.static::TABLE_NAME_LANG.'` (
-                `id_block` INT( 12 ),
-                `id_lang` INT( 12 ) NOT NULL,
+                `id_block` INT(11) UNSIGNED NOT NULL,
+                `id_lang` INT(11) UNSIGNED NOT NULL,
                 `content` TEXT NOT NULL,
-                PRIMARY KEY (  `id_block`, `id_lang` )
-                ) ENGINE =' ._MYSQL_ENGINE_;
+                PRIMARY KEY (`id_block`, `id_lang`)
+                ) ENGINE =' ._MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci';
         $sql3 = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.static::TABLE_NAME_HOOK.'` (
-                `id_block` INT( 12 ),
-                `hook_name` VARCHAR( 64 ) NOT NULL,
-                `position` INT( 12 ) NOT NULL,
-                PRIMARY KEY (  `id_block`,  `hook_name`)
-                ) ENGINE =' ._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8';
+                `id_block` INT(11) UNSIGNED NOT NULL,
+                `hook_name` VARCHAR(64) NOT NULL,
+                `position` INT(11) UNSIGNED NOT NULL,
+                PRIMARY KEY (`id_block`,  `hook_name`)
+                ) ENGINE =' ._MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci';
 
         if ( ! Db::getInstance()->Execute($sql)
             || ! Db::getInstance()->Execute($sql2)
