@@ -24,18 +24,64 @@ if ( ! defined('_TB_VERSION_')) {
 /**
  * Added back office hooks
  **/
-
 class TbHtmlBlock extends Module
 {
-    /* @var boolean error */
-    protected $hooksList = [];
+    // database tables
+    const TABLE_NAME = 'tbhtmlblock';
+    const TABLE_NAME_LANG = 'tbhtmlblock_lang';
+    const TABLE_NAME_HOOK = 'tbhtmlblock_hook';
 
-    protected static $cachedHooksList;
-
-    protected $_tabs = [
-        'AdminHTMLBlock' => 'Custom Blocks', // class => label
+    // List of hooks
+    const HOOK_LIST = [
+        'displayHeader',
+        'displayLeftColumn',
+        'displayRightColumn',
+        'displayHome',
+        'displayTop',
+        'displayFooter',
+        'displayFooterProduct',
+        'displayMyAccountBlock',
+        'displayBackOfficeFooter',
+        'displayBackOfficeHeader',
+        'displayBackOfficeHome',
+        'displayBackOfficeTop',
+        'displayBackOfficeCategory',
+        'displayAdminOrder',
+        'displayAdminCustomers',
+        'displayBeforeCarrier',
+        'displayBeforePayment',
+        'displayCustomerAccount',
+        'displayCustomerAccountForm',
+        'displayCustomerAccountFormTop',
+        'displayLeftColumnProduct',
+        'displayMaintenance',
+        'displayRightColumnProduct',
+        'displayProductTab',
+        'displayProductTabContent',
+        'displayPaymentReturn',
+        'displayPaymentTop',
+        'displayProductButtons',
+        'displayProductComparison',
+        'displayShoppingCart',
+        'displayShoppingCartFooter',
+        'displayTopColumn',
+        'displayProductListFunctionalButtons',
+        'displayPDFInvoice',
+        'displayInvoice',
+        'displayNav',
+        'displayMyAccountBlockFooter',
+        'displayHomeTab',
+        'displayHomeTabContent',
     ];
 
+    /**
+     * @var array
+     */
+    protected static $cachedHooksList = null;
+
+    /**
+     * @throws PrestaShopException
+     */
     public function __construct()
     {
         $this->name = 'tbhtmlblock';
@@ -45,53 +91,7 @@ class TbHtmlBlock extends Module
         $this->tb_min_version = '1.0.0';
         $this->tb_versions_compliancy = '> 1.0.0';
         $this->need_instance = 0;
-        $this->table_name = 'tbhtmlblock';
-        $this->table_name_lang = 'tbhtmlblock_lang';
-        $this->table_name_hook = 'tbhtmlblock_hook';
         $this->bootstrap = true;
-
-        // List of hooks
-        $this->hooksList = [
-            'displayHeader',
-            'displayLeftColumn',
-            'displayRightColumn',
-            'displayHome',
-            'displayTop',
-            'displayFooter',
-            'displayFooterProduct',
-            'displayMyAccountBlock',
-            'displayBackOfficeFooter',
-            'displayBackOfficeHeader',
-            'displayBackOfficeHome',
-            'displayBackOfficeTop',
-            'displayBackOfficeCategory',
-            'displayAdminOrder',
-            'displayAdminCustomers',
-            'displayBeforeCarrier',
-            'displayBeforePayment',
-            'displayCustomerAccount',
-            'displayCustomerAccountForm',
-            'displayCustomerAccountFormTop',
-            'displayLeftColumnProduct',
-            'displayMaintenance',
-            'displayRightColumnProduct',
-            'displayProductTab',
-            'displayProductTabContent',
-            'displayPaymentReturn',
-            'displayPaymentTop',
-            'displayProductButtons',
-            'displayProductComparison',
-            'displayShoppingCart',
-            'displayShoppingCartFooter',
-            'displayTopColumn',
-            'displayProductListFunctionalButtons',
-            'displayPDFInvoice',
-            'displayInvoice',
-            'displayNav',
-            'displayMyAccountBlockFooter',
-            'displayHomeTab',
-            'displayHomeTabContent',
-        ];
 
         parent::__construct();
 
@@ -99,6 +99,12 @@ class TbHtmlBlock extends Module
         $this->description = $this->l('Add custom html or code anywhere in your theme');
     }
 
+    /**
+     * @return bool
+     * @throws Adapter_Exception
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
     public function install()
     {
         if ( ! parent::install()
@@ -108,7 +114,7 @@ class TbHtmlBlock extends Module
             return false;
         }
 
-        foreach ($this->hooksList as $hook) {
+        foreach (static::HOOK_LIST as $hook) {
             if ( ! $this->registerHook($hook)) {
                 return false;
             }
@@ -117,6 +123,11 @@ class TbHtmlBlock extends Module
         return true;
     }
 
+    /**
+     * @return bool
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
     public function uninstall()
     {
         if ( ! parent::uninstall()
@@ -129,20 +140,24 @@ class TbHtmlBlock extends Module
         return true;
     }
 
+    /**
+     * @return bool
+     * @throws PrestaShopException
+     */
     private function _installTable(){
-        $sql = 'CREATE TABLE  `'._DB_PREFIX_.$this->table_name.'` (
+        $sql = 'CREATE TABLE  `'._DB_PREFIX_ . static::TABLE_NAME . '` (
                 `id_block` INT( 12 ) AUTO_INCREMENT,
                 `name` VARCHAR( 64 ) NOT NULL,
                 `active` TINYINT(1) NOT NULL,
                 PRIMARY KEY (  `id_block` )
                 ) ENGINE =' ._MYSQL_ENGINE_;
-        $sql2 = 'CREATE TABLE  `'._DB_PREFIX_.$this->table_name_lang.'` (
+        $sql2 = 'CREATE TABLE  `'._DB_PREFIX_.static::TABLE_NAME_LANG.'` (
                 `id_block` INT( 12 ),
                 `id_lang` INT( 12 ) NOT NULL,
                 `content` TEXT NOT NULL,
                 PRIMARY KEY (  `id_block`, `id_lang` )
                 ) ENGINE =' ._MYSQL_ENGINE_;
-        $sql3 = 'CREATE TABLE  `'._DB_PREFIX_.$this->table_name_hook.'` (
+        $sql3 = 'CREATE TABLE  `'._DB_PREFIX_.static::TABLE_NAME_HOOK.'` (
                 `id_block` INT( 12 ),
                 `hook_name` VARCHAR( 64 ) NOT NULL,
                 `position` INT( 12 ) NOT NULL,
@@ -159,13 +174,17 @@ class TbHtmlBlock extends Module
         return true;
     }
 
+    /**
+     * @return bool
+     * @throws PrestaShopException
+     */
     private function _eraseTable(){
         if ( ! Db::getInstance()->Execute(
-                'DROP TABLE `'._DB_PREFIX_.$this->table_name.'`'
+                'DROP TABLE `'._DB_PREFIX_.static::TABLE_NAME.'`'
             ) || ! Db::getInstance()->Execute(
-                'DROP TABLE `'._DB_PREFIX_.$this->table_name_lang.'`'
+                'DROP TABLE `'._DB_PREFIX_.static::TABLE_NAME_LANG.'`'
             ) || ! Db::getInstance()->Execute(
-                'DROP TABLE `'._DB_PREFIX_.$this->table_name_hook.'`'
+                'DROP TABLE `'._DB_PREFIX_.static::TABLE_NAME_HOOK.'`'
         )) {
             return false;
         }
@@ -173,26 +192,35 @@ class TbHtmlBlock extends Module
         return true;
     }
 
+    /**
+     * @return bool
+     * @throws PrestaShopException
+     */
     private function _createTabs()
     {
         /* This is the main tab, all others will be children of this */
-        $allLangs = Language::getLanguages();
-        $idTab = $this->_createSingleTab(0, 'Admin'.ucfirst($this->name), $this->displayName, $allLangs);
-
-        foreach ($this->_tabs as $class => $name) {
-              $this->_createSingleTab($idTab, $class, $name, $allLangs);
-        }
-
+        $languages = Language::getIDs(false);
+        $idTab = $this->_createSingleTab(0, 'Admin'.ucfirst($this->name), $this->displayName, $languages);
+        $this->_createSingleTab($idTab, 'AdminHTMLBlock', 'Custom Blocks', $languages);
         return true;
     }
 
-    private function _createSingleTab($idParent, $class, $name, $allLangs)
+    /**
+     * @param int $idParent
+     * @param string $class
+     * @param string $name
+     * @param int[] $languages
+     * @return false|int|null
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
+    private function _createSingleTab($idParent, $class, $name, $languages)
     {
         $tab = new Tab();
         $tab->active = 1;
 
-        foreach ($allLangs as $language) {
-            $tab->name[$language['id_lang']] = $name;
+        foreach ($languages as $langId) {
+            $tab->name[$langId] = $name;
         }
 
         $tab->class_name = $class;
@@ -208,39 +236,37 @@ class TbHtmlBlock extends Module
 
     /**
      * Get rid of all installed back office tabs
+     *
+     * @return bool
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     private function _eraseTabs()
     {
-        $idTabm = (int)Tab::getIdFromClassName('Admin'.ucfirst($this->name));
-        if ($idTabm) {
-            $tabm = new Tab($idTabm);
-            $tabm->delete();
+        foreach (Tab::getCollectionFromModule($this->name) as $tab) {
+            $tab->delete();
         }
-
-        foreach ($this->_tabs as $class => $name) {
-            $idTab = (int)Tab::getIdFromClassName($class);
-            if ($idTab) {
-                $tab = new Tab($idTab);
-                $tab->delete();
-            }
-        }
-
         return true;
     }
 
+    /**
+     * @return array
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
     public function getAllBlocks()
     {
         $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
             SELECT b.*, bh.*, h.title as hook_title
-            FROM '._DB_PREFIX_.$this->table_name.' b
-            LEFT JOIN '._DB_PREFIX_.$this->table_name_hook.' bh ON (bh.id_block = b.id_block)
+            FROM '._DB_PREFIX_.static::TABLE_NAME.' b
+            LEFT JOIN '._DB_PREFIX_.static::TABLE_NAME_HOOK.' bh ON (bh.id_block = b.id_block)
             LEFT JOIN '._DB_PREFIX_.'hook h ON (h.name = bh.hook_name)
             GROUP BY b.id_block
             ORDER BY bh.hook_name, bh.position
         ');
 
         if ( ! $result) {
-            return false;
+            return [];
         }
 
         $finalBlocks = [];
@@ -252,21 +278,28 @@ class TbHtmlBlock extends Module
         return $finalBlocks;
     }
 
+    /**
+     * Returns custom blocks contents, indexed by hook name
+     *
+     * @return array
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
     public function getFrontBlocks()
     {
         $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
             SELECT b.content, bh.hook_name
-            FROM '._DB_PREFIX_.$this->table_name_lang.' b
-            LEFT JOIN '._DB_PREFIX_.$this->table_name_hook.' bh ON (bh.id_block = b.id_block)
-            LEFT JOIN '._DB_PREFIX_.$this->table_name.' o ON (o.id_block = b.id_block)
-            WHERE id_lang = '.$this->context->language->id.'
+            FROM '._DB_PREFIX_.static::TABLE_NAME_LANG.' b
+            LEFT JOIN '._DB_PREFIX_.static::TABLE_NAME_HOOK.' bh ON (bh.id_block = b.id_block)
+            LEFT JOIN '._DB_PREFIX_.static::TABLE_NAME.' o ON (o.id_block = b.id_block)
+            WHERE id_lang = '.(int)$this->context->language->id.'
             AND o.active = 1
             GROUP BY b.id_block
             ORDER BY bh.hook_name, bh.position
         ');
 
         if ( ! $result) {
-            return false;
+            return [];
         }
 
         $finalBlocks = [];
@@ -277,261 +310,571 @@ class TbHtmlBlock extends Module
         return $finalBlocks;
     }
 
+    /**
+     * @return array
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
     public function getHooksWithNames()
-    {
-        return Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
-            SELECT *
-            FROM '._DB_PREFIX_.'hook
-            WHERE name IN ("'.implode('","', $this->hooksList).'")
-            ORDER BY title
-        ');
-    }
-
-    public function getSingleBlockData($id_block)
     {
         $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS('
             SELECT *
-            FROM '._DB_PREFIX_.$this->table_name .' t
-            LEFT JOIN '._DB_PREFIX_.$this->table_name_lang.' tl ON (t.id_block = tl.id_block)
-            LEFT JOIN '._DB_PREFIX_.$this->table_name_hook.' th ON (t.id_block = th.id_block)
-            WHERE t.id_block ='.$id_block.'
+            FROM '._DB_PREFIX_.'hook
+            WHERE name IN ("'.implode('","', static::HOOK_LIST).'")
+            ORDER BY title
         ');
 
-        if ( ! $result) {
+        return is_array($result) ? $result : [];
+    }
+
+    /**
+     * @param int $blockId
+     * @return false|array
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
+    public function getSingleBlockData($blockId)
+    {
+        $blockId = (int)$blockId;
+
+        $sql = ('
+            SELECT *
+            FROM '._DB_PREFIX_.static::TABLE_NAME .' t
+            LEFT JOIN '._DB_PREFIX_.static::TABLE_NAME_LANG.' tl ON (t.id_block = tl.id_block)
+            LEFT JOIN '._DB_PREFIX_.static::TABLE_NAME_HOOK.' th ON (t.id_block = th.id_block)
+            WHERE t.id_block ='.$blockId.'
+        ');
+        $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->ExecuteS($sql);
+
+        if (! $result) {
             return false;
         }
 
         $newBlock = $result[0];
 
         $newBlock['content'] = [];
-        foreach ($result as $key => $block) {
+        foreach ($result as $block) {
             $newBlock['content'][$block['id_lang']] = $block['content'];
+        }
+
+        foreach (Language::getIDs(false) as $langId) {
+            if (! array_key_exists($langId, $newBlock['content'])) {
+                $newBlock['content'][$langId] = '';
+            }
         }
 
         return $newBlock;
     }
 
+    /**
+     * @param int $id_block
+     * @return bool
+     * @throws PrestaShopException
+     */
     public function getBlockStatus($id_block)
     {
-        return Db::getInstance()->getValue('SELECT active FROM '._DB_PREFIX_.$this->table_name.' WHERE id_block = '.$id_block);
+        return (bool)Db::getInstance()->getValue('SELECT active FROM '._DB_PREFIX_.static::TABLE_NAME.' WHERE id_block = '.(int)$id_block);
     }
 
-    public function hookCommon($hookname, $params)
+    /**
+     * Common hook handler - output custom content
+     *
+     * @param string $hookName
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookCommon($hookName)
     {
-        //check if all hooks are cached, if not get them
-        //add getFrontHooks
-
-        if ( ! self::$cachedHooksList) {
-            self::$cachedHooksList = $this->getFrontBlocks();
-        }
-        $hooks = self::$cachedHooksList;
-
-        if ( ! isset($hooks[$hookname])) {
-            return false;
+        if (is_null(static::$cachedHooksList)) {
+            static::$cachedHooksList = $this->getFrontBlocks();
         }
 
-        $this->smarty->assign('tbhtmlblock_blocks', $hooks[$hookname]);
-
+        if ( ! isset(static::$cachedHooksList[$hookName])) {
+            return '';
+        }
+        $this->smarty->assign('tbhtmlblock_blocks', static::$cachedHooksList[$hookName]);
         return $this->display(__FILE__, 'tbhtmlblock.tpl');
     }
 
-    public function hookDisplayHeader($params)
+    /**
+     * Hook handler 
+     * 
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayHeader()
     {
-        return $this->hookCommon('displayHeader', $params);
+        return $this->hookCommon('displayHeader');
     }
 
-    public function hookDisplayLeftColumn($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayLeftColumn()
     {
-        return $this->hookCommon('displayLeftColumn', $params);
+        return $this->hookCommon('displayLeftColumn');
     }
 
-    public function hookDisplayRightColumn($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayRightColumn()
     {
-        return $this->hookCommon('displayRightColumn', $params);
+        return $this->hookCommon('displayRightColumn');
     }
 
-    public function hookDisplayHome($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayHome()
     {
-        return $this->hookCommon('displayHome', $params);
+        return $this->hookCommon('displayHome');
     }
 
-    public function hookDisplayTop($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayTop()
     {
-        return $this->hookCommon('displayTop', $params);
+        return $this->hookCommon('displayTop');
     }
 
-    public function hookDisplayFooter($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayFooter()
     {
-        return $this->hookCommon('displayFooter', $params);
+        return $this->hookCommon('displayFooter');
     }
 
-    public function hookDisplayFooterProduct($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayFooterProduct()
     {
-        return $this->hookCommon('displayFooterProduct', $params);
+        return $this->hookCommon('displayFooterProduct');
     }
 
-    public function hookDisplayMyAccountBlock($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayMyAccountBlock()
     {
-        return $this->hookCommon('displayMyAccountBlock', $params);
+        return $this->hookCommon('displayMyAccountBlock');
     }
 
-    public function hookDisplayBackOfficeFooter($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayBackOfficeFooter()
     {
-        return $this->hookCommon('displayBackOfficeFooter', $params);
+        return $this->hookCommon('displayBackOfficeFooter');
     }
 
-    public function hookDisplayBackOfficeHeader($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayBackOfficeHeader()
     {
-        return $this->hookCommon('displayBackOfficeHeader', $params);
+        return $this->hookCommon('displayBackOfficeHeader');
     }
 
-    public function hookDisplayBackOfficeHome($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayBackOfficeHome()
     {
-        return $this->hookCommon('displayBackOfficeHome', $params);
+        return $this->hookCommon('displayBackOfficeHome');
     }
 
-    public function hookDisplayBackOfficeTop($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayBackOfficeTop()
     {
-        return $this->hookCommon('displayBackOfficeTop', $params);
+        return $this->hookCommon('displayBackOfficeTop');
     }
 
-    public function hookDisplayBackOfficeCategory($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayBackOfficeCategory()
     {
-        return $this->hookCommon('displayBackOfficeCategory', $params);
+        return $this->hookCommon('displayBackOfficeCategory');
     }
 
-    public function hookDisplayAdminOrder($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayAdminOrder()
     {
-        return $this->hookCommon('displayAdminOrder', $params);
+        return $this->hookCommon('displayAdminOrder');
     }
 
-    public function hookDisplayAdminCustomers($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayAdminCustomers()
     {
-        return $this->hookCommon('displayAdminCustomers', $params);
+        return $this->hookCommon('displayAdminCustomers');
     }
 
-    public function hookDisplayBeforeCarrier($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayBeforeCarrier()
     {
-        return $this->hookCommon('displayBeforeCarrier', $params);
+        return $this->hookCommon('displayBeforeCarrier');
     }
 
-    public function hookDisplayBeforePayment($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayBeforePayment()
     {
-        return $this->hookCommon('displayBeforePayment', $params);
+        return $this->hookCommon('displayBeforePayment');
     }
 
-    public function hookDisplayCustomerAccount($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayCustomerAccount()
     {
-        return $this->hookCommon('displayCustomerAccount', $params);
+        return $this->hookCommon('displayCustomerAccount');
     }
 
-    public function hookDisplayCustomerAccountForm($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayCustomerAccountForm()
     {
-        return $this->hookCommon('displayCustomerAccountForm', $params);
+        return $this->hookCommon('displayCustomerAccountForm');
     }
 
-    public function hookDisplayCustomerAccountFormTop($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayCustomerAccountFormTop()
     {
-        return $this->hookCommon('displayCustomerAccountFormTop', $params);
+        return $this->hookCommon('displayCustomerAccountFormTop');
     }
 
-    public function hookDisplayLeftColumnProduct($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayLeftColumnProduct()
     {
-        return $this->hookCommon('displayLeftColumnProduct', $params);
+        return $this->hookCommon('displayLeftColumnProduct');
     }
 
-    public function hookDisplayMaintenance($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayMaintenance()
     {
-        return $this->hookCommon('displayMaintenance', $params);
+        return $this->hookCommon('displayMaintenance');
     }
 
-    public function hookDisplayRightColumnProduct($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayRightColumnProduct()
     {
-        return $this->hookCommon('displayRightColumnProduct', $params);
+        return $this->hookCommon('displayRightColumnProduct');
     }
 
-    public function hookDisplayProductTab($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayProductTab()
     {
-        return $this->hookCommon('displayProductTab', $params);
+        return $this->hookCommon('displayProductTab');
     }
 
-    public function hookDisplayProductTabContent($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayProductTabContent()
     {
-        return $this->hookCommon('displayProductTabContent', $params);
+        return $this->hookCommon('displayProductTabContent');
     }
 
-    public function hookDisplayPayment($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayPayment()
     {
-        return $this->hookCommon('displayPayment', $params);
+        return $this->hookCommon('displayPayment');
     }
 
-    public function hookDisplayPaymentReturn($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayPaymentReturn()
     {
-        return $this->hookCommon('displayPaymentReturn', $params);
+        return $this->hookCommon('displayPaymentReturn');
     }
 
-    public function hookDisplayPaymentTop($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayPaymentTop()
     {
-        return $this->hookCommon('displayPaymentTop', $params);
+        return $this->hookCommon('displayPaymentTop');
     }
 
-    public function hookDisplayProductButtons($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayProductButtons()
     {
-        return $this->hookCommon('displayProductButtons', $params);
-    }
-    public function hookDisplayProductComparison($params)
-    {
-        return $this->hookCommon('displayProductComparison', $params);
-    }
-
-    public function hookDisplayShoppingCart($params)
-    {
-        return $this->hookCommon('displayShoppingCart', $params);
+        return $this->hookCommon('displayProductButtons');
     }
 
-    public function hookDisplayShoppingCartFooter($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayProductComparison()
     {
-        return $this->hookCommon('displayShoppingCartFooter', $params);
+        return $this->hookCommon('displayProductComparison');
     }
 
-    public function hookDisplayTopColumn($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayShoppingCart()
     {
-        return $this->hookCommon('displayTopColumn', $params);
+        return $this->hookCommon('displayShoppingCart');
     }
 
-    public function hookDisplayProductListFunctionalButtons($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayShoppingCartFooter()
     {
-        return $this->hookCommon('displayProductListFunctionalButtons', $params);
+        return $this->hookCommon('displayShoppingCartFooter');
     }
 
-    public function hookDisplayPDFInvoice($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayTopColumn()
     {
-        return $this->hookCommon('displayPDFInvoice', $params);
+        return $this->hookCommon('displayTopColumn');
     }
 
-    public function hookDisplayInvoice($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayProductListFunctionalButtons()
     {
-        return $this->hookCommon('displayInvoice', $params);
+        return $this->hookCommon('displayProductListFunctionalButtons');
     }
 
-    public function hookDisplayNav($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayPDFInvoice()
     {
-        return $this->hookCommon('displayNav',$params);
+        return $this->hookCommon('displayPDFInvoice');
     }
 
-    public function hookDisplayMyAccountBlockFooter($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayInvoice()
     {
-        return $this->hookCommon('displayMyAccountBlockFooter', $params);
+        return $this->hookCommon('displayInvoice');
     }
 
-    public function hookDisplayHomeTab($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayNav()
     {
-        return $this->hookCommon('displayHomeTab', $params);
+        return $this->hookCommon('displayNav');
     }
 
-    public function hookDisplayHomeTabContent($params)
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayMyAccountBlockFooter()
     {
-        return $this->hookCommon('displayHomeTabContent', $params);
+        return $this->hookCommon('displayMyAccountBlockFooter');
+    }
+
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayHomeTab()
+    {
+        return $this->hookCommon('displayHomeTab');
+    }
+
+    /**
+     * Hook handler
+     *
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
+    public function hookDisplayHomeTabContent()
+    {
+        return $this->hookCommon('displayHomeTabContent');
     }
 
     /**

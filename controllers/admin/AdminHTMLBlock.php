@@ -21,8 +21,18 @@ if ( ! defined('_TB_VERSION_')) {
     exit;
 }
 
+/**
+ * class AdminHTMLBlockController
+ */
 class AdminHTMLBlockController extends ModuleAdminController
 {
+    /** @var TbHtmlBlock */
+    public $module;
+
+    /**
+     * Constructor
+     * @throws PrestaShopException
+     */
     public function __construct()
     {
         $this->bootstrap = true;
@@ -33,6 +43,9 @@ class AdminHTMLBlockController extends ModuleAdminController
         parent::__construct();
     }
 
+    /**
+     * Initialize page header toolbar
+     */
     public function initPageHeaderToolbar()
     {
         if (empty($this->display) || $this->display =='list') {
@@ -46,57 +59,70 @@ class AdminHTMLBlockController extends ModuleAdminController
         parent::initPageHeaderToolbar();
     }
 
+    /**
+     * Render hook list
+     *
+     * @return string
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
     public function renderList()
     {
         $blocks = $this->module->getAllBlocks();
         $content = '';
 
-        if ($blocks) {
-            foreach ($blocks as $block) {
-                $fieldsList = [
-                    'id_block'  => [
-                        'title'   => 'ID',
-                        'align'   => 'center',
-                        'class'   => 'fixed-width-xs',
-                    ],
-                    'name'      => [
-                        'title'   => $this->l('Name'),
-                    ],
-                    'active'    => [
-                        'title'   => $this->l('Status'),
-                        'active'  => 'status',
-                        'type'    => 'bool',
-                    ],
-                    'position'  => [
-                        'title'     => $this->l('Position'),
-                        'position'  => 'position',
-                    ],
-                ];
+        foreach ($blocks as $block) {
+            $fieldsList = [
+                'id_block'  => [
+                    'title'   => 'ID',
+                    'align'   => 'center',
+                    'class'   => 'fixed-width-xs',
+                ],
+                'name'      => [
+                    'title'   => $this->l('Name'),
+                ],
+                'active'    => [
+                    'title'   => $this->l('Status'),
+                    'active'  => 'status',
+                    'type'    => 'bool',
+                ],
+                'position'  => [
+                    'title'     => $this->l('Position'),
+                    'position'  => 'position',
+                ],
+            ];
 
-                $helper = new HelperList();
-                $helper->shopLinkType = '';
-                $helper->simple_header = true;
-                $helper->actions = ["edit", "delete"];
-                $helper->show_toolbar = false;
-                $helper->module = $this;
-                $helper->listTotal = count($blocks);
-                $helper->identifier = 'id_block';
-                $helper->position_identifier = 'position';
-                $helper->title = $block['name'];
-                $helper->orderBy = 'position';
-                $helper->orderWay = 'ASC';
-                $helper->table = $this->table;
-                $helper->token = Tools::getAdminTokenLite('AdminHTMLBlock');
-                $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
+            $helper = new HelperList();
+            $helper->shopLinkType = '';
+            $helper->simple_header = true;
+            $helper->actions = ["edit", "delete"];
+            $helper->show_toolbar = false;
+            $helper->module = $this;
+            $helper->listTotal = count($blocks);
+            $helper->identifier = 'id_block';
+            $helper->position_identifier = 'position';
+            $helper->title = $block['name'];
+            $helper->orderBy = 'position';
+            $helper->orderWay = 'ASC';
+            $helper->table = $this->table;
+            $helper->token = Tools::getAdminTokenLite('AdminHTMLBlock');
+            $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
 
-                $content .= $helper->generateList($block['blocks'], $fieldsList);
-            }
+            $content .= $helper->generateList($block['blocks'], $fieldsList);
         }
 
         return $content;
     }
 
-
+    /**
+     * Render entry form
+     *
+     * @return string
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
     public function renderForm()
     {
         $inputs[] = [
@@ -166,6 +192,11 @@ class AdminHTMLBlockController extends ModuleAdminController
         return parent::renderForm();
     }
 
+    /**
+     * Render view
+     *
+     * @return string
+     */
     public function renderView()
     {
         $this->tpl_view_vars['object'] = $this->loadObject();
@@ -173,6 +204,11 @@ class AdminHTMLBlockController extends ModuleAdminController
         return parent::renderView();
     }
 
+    /**
+     * Process post request
+     *
+     * @throws PrestaShopException
+     */
     public function postProcess()
     {
         if ($this->ajax) {
@@ -180,7 +216,7 @@ class AdminHTMLBlockController extends ModuleAdminController
             if ( ! empty($action)
                 && method_exists($this, 'ajaxProcess'.Tools::toCamelCase($action))
             ) {
-                $return = $this->{'ajaxProcess'.Tools::toCamelCase($action)}();
+                $this->{'ajaxProcess'.Tools::toCamelCase($action)}();
             }
         } else {
             if (Tools::isSubmit('submitAddBlock')) {
@@ -197,16 +233,34 @@ class AdminHTMLBlockController extends ModuleAdminController
         }
     }
 
+    /**
+     * Toggle block visibility status
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
     public function toggleStatus()
     {
         $idBlock = (int)Tools::getValue('id_block');
-        Db::getInstance()->update($this->module->table_name, ['active' => !$this->module->getBlockStatus($idBlock)], 'id_block = '.$idBlock);
+        Db::getInstance()->update(
+            TbHtmlBlock::TABLE_NAME,
+            [
+                'active' => !$this->module->getBlockStatus($idBlock)
+            ],
+            'id_block = '.$idBlock
+        );
 
         if (empty($this->errors)) {
             $this->redirect_after = static::$currentIndex.'&conf=4&token='.$this->token;
         }
     }
 
+    /**
+     * Adds new custom block
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
     public function processAdd()
     {
         $blockName = Tools::getValue('name');
@@ -214,34 +268,43 @@ class AdminHTMLBlockController extends ModuleAdminController
         if ( ! $blockName || ! Validate::isGenericName($blockName)) {
             $this->_errors[] = $this->l('Invalid name');
         } else {
-            if ( ! Db::getInstance()->insert($this->module->table_name, ['name' => $blockName, 'active' => Tools::getValue('active')])) {
+            if (! Db::getInstance()->insert(
+                TbHtmlBlock::TABLE_NAME,
+                [
+                    'name' => pSQL($blockName),
+                    'active' => (bool)Tools::getValue('active')
+                ]
+            )) {
                 $this->_errors[] = $this->l('Error while adding the new block, please retry');
             } else {
-                $blockId = Db::getInstance()->Insert_ID();
+                $blockId = (int)Db::getInstance()->Insert_ID();
 
                 $hookName = Tools::getValue('hook_name');
-                $maxP = Db::getInstance()->getValue('SELECT MAX(position) FROM ' . _DB_PREFIX_ . $this->module->table_name_hook . ' WHERE hook_name = "' . pSQL($hookName).'"');
-
-                if ($maxP === false) {
-                    $maxP = 0;
-                } else {
-                    $maxP++;
-                }
+                $position = (int)Db::getInstance()->getValue('SELECT COALESCE(MAX(position), -1) + 1 FROM ' . _DB_PREFIX_ . TbHtmlBlock::TABLE_NAME_HOOK . ' WHERE hook_name = "' . pSQL($hookName).'"');
 
                 $hookData = [
                     'id_block'  => $blockId,
                     'hook_name' => pSQL($hookName),
-                    'position'  => $maxP,
+                    'position'  => $position,
                 ];
 
-                if ( ! Db::getInstance()->insert($this->module->table_name_hook, $hookData)) {
-                    Db::getInstance()->delete($this->module->table_name, 'id_block = ' . $blockId);
+                if (! Db::getInstance()->insert(TbHtmlBlock::TABLE_NAME_HOOK, $hookData)) {
+                    Db::getInstance()->delete(TbHtmlBlock::TABLE_NAME, 'id_block = ' . $blockId);
                     $this->_errors[] = $this->l('Error while adding the hook. ');
                 } else {
                     foreach ($this->getLanguages() as $lang) {
-                        $content = Tools::getValue('content_'.$lang['id_lang']);
-                        if ( ! Db::getInstance()->insert($this->module->table_name_lang, ['id_block' => $blockId, 'id_lang' => $lang['id_lang'], 'content' => pSQL($content, TRUE)]))
-                            $this->_errors[] = $this->l('Error while adding the block\'s content for language "'.$lang['id_lang'].'"');
+                        $langId = (int)$lang['id_lang'];
+                        $content = Tools::getValue('content_'.$langId);
+                        if (! Db::getInstance()->insert(
+                            TbHtmlBlock::TABLE_NAME_LANG,
+                            [
+                                'id_block' => $blockId,
+                                'id_lang' => $langId,
+                                'content' => pSQL($content, true)
+                            ]
+                        )) {
+                            $this->_errors[] = $this->l('Error while adding the block\'s content for language "'.$langId.'"');
+                        }
                     }
                 }
             }
@@ -252,40 +315,66 @@ class AdminHTMLBlockController extends ModuleAdminController
         }
     }
 
+    /**
+     * Updates custom block
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
     public function processUpdate()
     {
+
+        $blockId = (int)Tools::getValue('id_block');
+
         $blockName = Tools::getValue('name');
         if ( ! $blockName || ! Validate::isGenericName($blockName))
             $this->_errors[] = $this->l('Invalid name');
         else {
-            if (!Db::getInstance()->update($this->module->table_name, ['name' => $blockName, 'active' => Tools::getValue('active')], 'id_block = '. (int)Tools::getValue('id_block'))) {
+            if (!Db::getInstance()->update(
+                TbHtmlBlock::TABLE_NAME,
+                [
+                    'name' => pSQL($blockName),
+                    'active' => (bool)Tools::getValue('active')
+                ],
+                'id_block = '. $blockId
+            )) {
                 $this->_errors[] = $this->l('Error while updating the block ');
             } else {
-                if (!Db::getInstance()->update($this->module->table_name_hook, ['hook_name' => pSQL(Tools::getValue('hook_name'))], 'id_block = '. (int)Tools::getValue('id_block'))) {
+                if (!Db::getInstance()->update(
+                    TbHtmlBlock::TABLE_NAME_HOOK,
+                    [
+                        'hook_name' => pSQL(Tools::getValue('hook_name'))
+                    ],
+                    'id_block = '. $blockId
+                )) {
                     $this->_errors[] = $this->l('Error while updating the hook ');
                 } else {
                     foreach ($this->getLanguages() as $lang) {
-                        $content = Tools::getValue('content_'.$lang['id_lang']);
+
+                        $langId = (int)$lang['id_lang'];
+                        $content = Tools::getValue('content_'.$langId);
 
                         // add the language if not present
-                        $isLangAdded = Db::getInstance()->getValue('SELECT id_block FROM '._DB_PREFIX_.$this->module->table_name_lang.' WHERE id_block = '.(int)Tools::getValue('id_block').' AND id_lang = ' . $lang['id_lang']);
+                        $isLangAdded = Db::getInstance()->getValue('SELECT 1 FROM '._DB_PREFIX_.TbHtmlBlock::TABLE_NAME_LANG.' WHERE id_block = '.$blockId.' AND id_lang = ' . $langId);
                         if ( ! $isLangAdded) {
                             Db::getInstance()->insert(
-                                $this->module->table_name_lang,
+                                TbHtmlBlock::TABLE_NAME_LANG,
                                 [
-                                    'id_lang'   => $lang['id_lang'],
-                                    'id_block'  => (int)Tools::getValue('id_block'),
+                                    'id_lang'   => $langId,
+                                    'id_block'  => $blockId,
                                     'content'   => '',
                                 ]
                             );
                         }
 
                         if ( ! Db::getInstance()->update(
-                            $this->module->table_name_lang,
-                            ['content' => pSQL($content, true)],
-                            'id_block = '.(int) Tools::getValue('id_block').' AND id_lang = ' . $lang['id_lang']
+                            TbHtmlBlock::TABLE_NAME_LANG,
+                            [
+                                'content' => pSQL($content, true)
+                            ],
+                            'id_block = '.$blockId.' AND id_lang = ' . $langId
                         )) {
-                            $this->_errors[] = $this->l('Error while updating the block\'s content for language "'.$lang['id_lang'].'"');
+                            $this->_errors[] = $this->l('Error while updating the block\'s content for language "'.$langId.'"');
                         }
                     }
                 }
@@ -297,23 +386,35 @@ class AdminHTMLBlockController extends ModuleAdminController
         }
     }
 
+    /**
+     * Deletes custom block
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
     public function processDelete()
     {
-        $idBlock = Tools::getValue('id_block');
-        Db::getInstance()->delete($this->module->table_name, 'id_block = ' . $idBlock);
-        Db::getInstance()->delete($this->module->table_name_hook, 'id_block = ' . $idBlock);
-        Db::getInstance()->delete($this->module->table_name_lang, 'id_block = ' . $idBlock);
+        $idBlock = (int)Tools::getValue('id_block');
+        Db::getInstance()->delete(TbHtmlBlock::TABLE_NAME, 'id_block = ' . $idBlock);
+        Db::getInstance()->delete(TbHtmlBlock::TABLE_NAME_HOOK, 'id_block = ' . $idBlock);
+        Db::getInstance()->delete(TbHtmlBlock::TABLE_NAME_LANG, 'id_block = ' . $idBlock);
 
         $this->redirect_after = static::$currentIndex.'&conf=1&token='.$this->token;
     }
 
+    /**
+     * Updates position
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
     public function ajaxProcessUpdatePositions()
     {
         $positions = Tools::getValue('block');
 
         foreach ($positions as $position => $value) {
             $pos = explode('_', $value);
-            Db::getInstance()->update($this->module->table_name_hook, ['position' => $position], 'id_block =' . (int)$pos[2]);
+            Db::getInstance()->update(TbHtmlBlock::TABLE_NAME_HOOK, ['position' => (int)$position], 'id_block =' . (int)$pos[2]);
         }
     }
 }
