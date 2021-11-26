@@ -108,8 +108,8 @@ class TbHtmlBlock extends Module
     public function install()
     {
         if ( ! parent::install()
-            || ! $this->_createTabs()
-            || ! $this->_installTable()
+            || ! $this->createTab()
+            || ! $this->installTable()
         ) {
             return false;
         }
@@ -131,8 +131,8 @@ class TbHtmlBlock extends Module
     public function uninstall()
     {
         if ( ! parent::uninstall()
-            || ! $this->_eraseTable()
-            || ! $this->_eraseTabs()
+            || ! $this->eraseTable()
+            || ! $this->eraseTabs()
         ) {
             return false;
         }
@@ -144,7 +144,7 @@ class TbHtmlBlock extends Module
      * @return bool
      * @throws PrestaShopException
      */
-    private function _installTable(){
+    private function installTable(){
         $sql = 'CREATE TABLE  `'._DB_PREFIX_ . static::TABLE_NAME . '` (
                 `id_block` INT( 12 ) AUTO_INCREMENT,
                 `name` VARCHAR( 64 ) NOT NULL,
@@ -178,7 +178,7 @@ class TbHtmlBlock extends Module
      * @return bool
      * @throws PrestaShopException
      */
-    private function _eraseTable(){
+    private function eraseTable(){
         if ( ! Db::getInstance()->Execute(
                 'DROP TABLE `'._DB_PREFIX_.static::TABLE_NAME.'`'
             ) || ! Db::getInstance()->Execute(
@@ -196,39 +196,19 @@ class TbHtmlBlock extends Module
      * @return bool
      * @throws PrestaShopException
      */
-    private function _createTabs()
-    {
-        /* This is the main tab, all others will be children of this */
-        $languages = Language::getIDs(false);
-        $idTab = $this->_createSingleTab(0, 'Admin'.ucfirst($this->name), $this->displayName, $languages);
-        $this->_createSingleTab($idTab, 'AdminHTMLBlock', 'Custom Blocks', $languages);
-        return true;
-    }
-
-    /**
-     * @param int $idParent
-     * @param string $class
-     * @param string $name
-     * @param int[] $languages
-     * @return false|int|null
-     * @throws PrestaShopDatabaseException
-     * @throws PrestaShopException
-     */
-    private function _createSingleTab($idParent, $class, $name, $languages)
+    private function createTab()
     {
         $tab = new Tab();
         $tab->active = 1;
-
-        foreach ($languages as $langId) {
-            $tab->name[$langId] = $name;
+        $tab->class_name = 'AdminHTMLBlock';
+        $tab->module = $this->name;
+        $tab->id_parent = 0;
+        foreach (Language::getIDs(false) as $langId) {
+            $tab->name[$langId] = $this->displayName;
         }
 
-        $tab->class_name = $class;
-        $tab->module = $this->name;
-        $tab->id_parent = $idParent;
-
         if ($tab->add()) {
-            return $tab->id;
+            return true;
         }
 
         return false;
@@ -241,7 +221,7 @@ class TbHtmlBlock extends Module
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
-    private function _eraseTabs()
+    private function eraseTabs()
     {
         foreach (Tab::getCollectionFromModule($this->name) as $tab) {
             $tab->delete();
