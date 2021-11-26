@@ -120,6 +120,8 @@ class TbHtmlBlock extends Module
             }
         }
 
+        $this->installFixtures();
+
         return true;
     }
 
@@ -867,5 +869,37 @@ class TbHtmlBlock extends Module
     public function getContent()
     {
         Tools::redirectAdmin(Context::getContext()->link->getAdminLink('AdminHTMLBlock'));
+    }
+
+    /**
+     * Creates simple data fixtures
+     * @throws PrestaShopException
+     */
+    private function installFixtures()
+    {
+        $conn = Db::getInstance();
+        $conn->insert(static::TABLE_NAME, ['name' => 'Store Information', 'active' => 1]);
+        $blockId = (int)$conn->Insert_ID();
+        $conn->insert(static::TABLE_NAME_HOOK, ['id_block' => $blockId, 'hook_name' => 'displayFooter', 'position' => 0]);
+        $content = (
+            '<section id="blockcontactinfos" class="col-xs-12 col-sm-3">'.
+            '  <h2 class="footer-title section-title-footer">Store Information</h2>'.
+            '  <address>'.
+            '    <ul class="list-unstyled">'.
+            '      <li><b>Your Company</b></li>'.
+            '      <li>42 Bee Lane<br /> 12345 The Hive<br /> the Netherlands</li>'.
+            '      <li><i class="icon icon-phone"></i> <a href="tel:0123-456-789">0123-456-789</a></li>'.
+            '      <li><i class="icon icon-envelope-alt"></i> <a href="mailto:%73%61%6c%65%73@%79%6f%75%72%63%6f%6d%70%61%6e%79.%63%6f%6d">sales@yourcompany.com</a></li>'.
+            '    </ul>'.
+            '  </address>'.
+            '</section>'
+        );
+        foreach (Language::getIDs(false) as $langId) {
+            $conn->insert(static::TABLE_NAME_LANG, [
+                'id_block' => $blockId,
+                'id_lang' => (int)$langId,
+                'content' => $content
+            ]);
+        }
     }
 }
