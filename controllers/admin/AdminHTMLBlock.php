@@ -272,7 +272,7 @@ class AdminHTMLBlockController extends ModuleAdminController
         $blockName = Tools::getValue('name');
 
         if ( ! $blockName || ! Validate::isGenericName($blockName)) {
-            $this->_errors[] = $this->l('Invalid name');
+            $this->errors[] = $this->l('Invalid name');
         } else {
             if (! Db::getInstance()->insert(
                 TbHtmlBlock::TABLE_NAME,
@@ -281,7 +281,7 @@ class AdminHTMLBlockController extends ModuleAdminController
                     'active' => (bool)Tools::getValue('active')
                 ]
             )) {
-                $this->_errors[] = $this->l('Error while adding the new block, please retry');
+                $this->errors[] = $this->l('Error while adding the new block, please retry');
             } else {
                 $blockId = (int)Db::getInstance()->Insert_ID();
 
@@ -296,7 +296,7 @@ class AdminHTMLBlockController extends ModuleAdminController
 
                 if (! Db::getInstance()->insert(TbHtmlBlock::TABLE_NAME_HOOK, $hookData)) {
                     Db::getInstance()->delete(TbHtmlBlock::TABLE_NAME, 'id_block = ' . $blockId);
-                    $this->_errors[] = $this->l('Error while adding the hook. ');
+                    $this->errors[] = $this->l('Error while adding the hook. ');
                 } else {
                     foreach ($this->getLanguages() as $lang) {
                         $langId = (int)$lang['id_lang'];
@@ -309,7 +309,7 @@ class AdminHTMLBlockController extends ModuleAdminController
                                 'content' => pSQL($content, true)
                             ]
                         )) {
-                            $this->_errors[] = $this->l('Error while adding the block\'s content for language "'.$langId.'"');
+                            $this->errors[] = $this->l('Error while adding the block\'s content for language "'.$langId.'"');
                         }
                     }
                 }
@@ -334,7 +334,7 @@ class AdminHTMLBlockController extends ModuleAdminController
 
         $blockName = Tools::getValue('name');
         if ( ! $blockName || ! Validate::isGenericName($blockName)) {
-            $this->_errors[] = $this->l('Invalid name');
+            $this->errors[] = $this->l('Invalid name');
         }
         else {
             if (!Db::getInstance()->update(
@@ -345,7 +345,7 @@ class AdminHTMLBlockController extends ModuleAdminController
                 ],
                 'id_block = '. $blockId
             )) {
-                $this->_errors[] = $this->l('Error while updating the block ');
+                $this->errors[] = $this->l('Error while updating the block ');
             } else {
                 if (!Db::getInstance()->update(
                     TbHtmlBlock::TABLE_NAME_HOOK,
@@ -354,7 +354,7 @@ class AdminHTMLBlockController extends ModuleAdminController
                     ],
                     'id_block = '. $blockId
                 )) {
-                    $this->_errors[] = $this->l('Error while updating the hook ');
+                    $this->errors[] = $this->l('Error while updating the hook ');
                 } else {
                     foreach ($this->getLanguages() as $lang) {
 
@@ -381,7 +381,7 @@ class AdminHTMLBlockController extends ModuleAdminController
                             ],
                             'id_block = '.$blockId.' AND id_lang = ' . $langId
                         )) {
-                            $this->_errors[] = $this->l('Error while updating the block\'s content for language "'.$langId.'"');
+                            $this->errors[] = $this->l('Error while updating the block\'s content for language "'.$langId.'"');
                         }
                     }
                 }
