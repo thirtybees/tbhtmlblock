@@ -102,7 +102,7 @@ class AdminHTMLBlockController extends ModuleAdminController
             $helper->simple_header = true;
             $helper->actions = ["edit", "delete"];
             $helper->show_toolbar = false;
-            $helper->module = $this;
+            $helper->module = $this->module;
             $helper->listTotal = count($blocks);
             $helper->identifier = 'id_block';
             $helper->position_identifier = 'position';
@@ -111,7 +111,7 @@ class AdminHTMLBlockController extends ModuleAdminController
             $helper->orderWay = 'ASC';
             $helper->table = $this->table;
             $helper->token = Tools::getAdminTokenLite('AdminHTMLBlock');
-            $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
+            $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->module->name;
 
             $content .= $helper->generateList($block['blocks'], $fieldsList);
         }
@@ -333,8 +333,9 @@ class AdminHTMLBlockController extends ModuleAdminController
         $blockId = (int)Tools::getValue('id_block');
 
         $blockName = Tools::getValue('name');
-        if ( ! $blockName || ! Validate::isGenericName($blockName))
+        if ( ! $blockName || ! Validate::isGenericName($blockName)) {
             $this->_errors[] = $this->l('Invalid name');
+        }
         else {
             if (!Db::getInstance()->update(
                 TbHtmlBlock::TABLE_NAME,
