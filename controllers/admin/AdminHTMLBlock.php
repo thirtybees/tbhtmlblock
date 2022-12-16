@@ -26,7 +26,9 @@ if ( ! defined('_TB_VERSION_')) {
  */
 class AdminHTMLBlockController extends ModuleAdminController
 {
-    /** @var TbHtmlBlock */
+    /**
+     * @var TbHtmlBlock
+     */
     public $module;
 
     /**
@@ -45,6 +47,8 @@ class AdminHTMLBlockController extends ModuleAdminController
 
     /**
      * Initialize page header toolbar
+     *
+     * @throws PrestaShopException
      */
     public function initPageHeaderToolbar()
     {
@@ -196,6 +200,8 @@ class AdminHTMLBlockController extends ModuleAdminController
      * Render view
      *
      * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
      */
     public function renderView()
     {

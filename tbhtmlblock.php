@@ -100,8 +100,9 @@ class TbHtmlBlock extends Module
     }
 
     /**
+     * @param bool $installFixtures
+     *
      * @return bool
-     * @throws Adapter_Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
@@ -147,7 +148,6 @@ class TbHtmlBlock extends Module
 
     /**
      * @return bool
-     * @throws Adapter_Exception
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
