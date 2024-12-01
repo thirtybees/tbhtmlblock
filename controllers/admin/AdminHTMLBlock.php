@@ -153,7 +153,7 @@ class AdminHTMLBlockController extends ModuleAdminController
         ];
         $inputs[] = [
             'type'   => 'switch',
-            'label'  => $this->l("Active"),
+            'label'  => $this->l('Active'),
             'name'   => 'active',
             'values' => [
                 [
