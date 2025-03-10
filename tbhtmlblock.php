@@ -498,41 +498,45 @@ class TbHtmlBlock extends Module
      */
     public function getSupportedHooks()
     {
-        $conn = Db::getInstance(_PS_USE_SQL_SLAVE_);
-        $names = '"' . implode('","', static::HOOK_LIST) . '"';
-        $result = $conn->executeS((new DbQuery())
-            ->select('h.name, h.title')
-            ->from('hook', 'h')
-            ->leftJoin('hook_alias', 'ha', 'ha.name = h.name')
-            ->orderBy('h.name')
-            ->where("h.name LIKE 'display%' OR h.name IN ($names) or ha.alias IN ($names)")
-            ->orderBy('h.title')
-        );
+        static $hooks = null;
 
-        // load all displayable hooks from database
-        $hooks = [];
-        foreach ($result as $row) {
-            $hookName = (string)$row['name'];
-            $title = (string)$row['title'];
-            if (! $title) {
-                $title = $hookName;
-            }
+        if (is_null($hooks)) {
+            $conn = Db::getInstance(_PS_USE_SQL_SLAVE_);
+            $names = '"' . implode('","', static::HOOK_LIST) . '"';
+            $result = $conn->executeS((new DbQuery())
+                ->select('h.name, h.title')
+                ->from('hook', 'h')
+                ->leftJoin('hook_alias', 'ha', 'ha.name = h.name')
+                ->orderBy('h.name')
+                ->where("h.name LIKE 'display%' OR h.name IN ($names) or ha.alias IN ($names)")
+                ->orderBy('h.title')
+            );
 
-            $hookLower = strtolower($hookName);
-            $hooks[$hookLower] = [
-                'name' => $hookName,
-                'title' => $title,
-            ];
-        }
+            // load all displayable hooks from database
+            $hooks = [];
+            foreach ($result as $row) {
+                $hookName = (string)$row['name'];
+                $title = (string)$row['title'];
+                if (!$title) {
+                    $title = $hookName;
+                }
 
-        // include hooks that are in supported hook list, but are not registred by the system yet
-        foreach (static::HOOK_LIST as $hookName) {
-            $hookLower = strtolower($hookName);
-            if (! array_key_exists($hookLower, $hooks) && ! array_key_exists(Hook::getRetroHookName($hookName), $hooks)) {
+                $hookLower = strtolower($hookName);
                 $hooks[$hookLower] = [
                     'name' => $hookName,
-                    'title' => $hookName,
+                    'title' => $title,
                 ];
+            }
+
+            // include hooks that are in supported hook list, but are not registred by the system yet
+            foreach (static::HOOK_LIST as $hookName) {
+                $hookLower = strtolower($hookName);
+                if (!array_key_exists($hookLower, $hooks) && !array_key_exists(Hook::getRetroHookName($hookName), $hooks)) {
+                    $hooks[$hookLower] = [
+                        'name' => $hookName,
+                        'title' => $hookName,
+                    ];
+                }
             }
         }
 
