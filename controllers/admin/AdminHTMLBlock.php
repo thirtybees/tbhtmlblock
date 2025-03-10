@@ -146,7 +146,7 @@ class AdminHTMLBlockController extends ModuleAdminController
             'label' => $this->l('Hook'),
             'name'  => 'hook_name',
             'options' => [
-                    'query' => $this->module->getHooksWithNames(),
+                    'query' => $this->module->getSupportedHooks(),
                     'id'    => 'name',
                     'name'  => 'title',
                 ],
@@ -236,6 +236,7 @@ class AdminHTMLBlockController extends ModuleAdminController
             ) {
                 $this->processDelete();
             }
+            $this->module->registerUsedHooks();
         }
     }
 
