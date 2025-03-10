@@ -334,6 +334,7 @@ class TbHtmlBlock extends Module
 
         $newBlock = $result[0];
 
+        $newBlock['hook_name'] = strtolower($newBlock['hook_name']);
         $newBlock['content'] = [];
         foreach ($result as $block) {
             $newBlock['content'][$block['id_lang']] = $block['content'];

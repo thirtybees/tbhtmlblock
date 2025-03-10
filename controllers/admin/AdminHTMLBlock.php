@@ -129,6 +129,18 @@ class AdminHTMLBlockController extends ModuleAdminController
      */
     public function renderForm()
     {
+        $hooks = [];
+        foreach ($this->module->getSupportedHooks() as $hook) {
+            $hooks[] = [
+                'name' => strtolower($hook['name']),
+                'title' => $hook['title'],
+            ];
+        }
+        usort($hooks, function($a, $b) {
+            return strcasecmp($a['title'], $b['title']);
+        });
+
+
         $inputs[] = [
             'type'  => 'text',
             'label' => $this->l('Block Name (For your eyes only)'),
@@ -146,7 +158,7 @@ class AdminHTMLBlockController extends ModuleAdminController
             'label' => $this->l('Hook'),
             'name'  => 'hook_name',
             'options' => [
-                    'query' => $this->module->getSupportedHooks(),
+                    'query' => $hooks,
                     'id'    => 'name',
                     'name'  => 'title',
                 ],
