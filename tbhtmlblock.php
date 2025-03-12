@@ -92,7 +92,7 @@ class TbHtmlBlock extends Module
     {
         $this->name = 'tbhtmlblock';
         $this->tab = 'front_office_features';
-        $this->version = '1.2.1';
+        $this->version = '1.3.0';
         $this->author = 'thirty bees';
         $this->tb_min_version = '1.0.0';
         $this->tb_versions_compliancy = '> 1.0.0';
